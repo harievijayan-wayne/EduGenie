@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Answer Prep – EduGenie{% endblock %}
+{% block page_title %}University Exam Answer Generator{% endblock %}
+
+{% block content %}
+<div class="max-w-1000 mx-auto" style="max-width: 960px; margin: 0 auto;">
+  
+  <!-- Config Card -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="award"></i> Standard University Exam Answer Synthesizer</h3>
+      <span class="status-badge">2 / 5 / 10 / 13 / 16 Marks</span>
+    </div>
+    <p class="text-muted mb-4">
+      Generates structured academic answers calibrated precisely to chief evaluator marking rubrics,
+      complete with block diagrams, subheadings, and time allocation guidance.
+    </p>
+
+    <form id="exam-gen-form">
+      <div class="form-group">
+        <label class="form-label" for="exam-topic">Question or Topic Statement</label>
+        <input type="text" id="exam-topic" class="form-input" placeholder="e.g. Explain the architecture and lifecycle of Microservices with a neat diagram." required value="Explain the Architecture and Fault-Tolerance of Apache Kafka with a neat diagram.">
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label">Select Allocated Marks</label>
+        <div class="d-flex gap-2 flex-wrap">
+          <label class="btn btn-secondary btn-sm d-flex align-items-center gap-1 cursor-pointer">
+            <input type="radio" name="marks" value="2"> 2 Marks (Brief & Precise)
+          </label>
+          <label class="btn btn-secondary btn-sm d-flex align-items-center gap-1 cursor-pointer">
+            <input type="radio" name="marks" value="5"> 5 Marks (Short Note)
+          </label>
+          <label class="btn btn-secondary btn-sm d-flex align-items-center gap-1 cursor-pointer">
+            <input type="radio" name="marks" value="10"> 10 Marks (Detailed Question)
+          </label>
+          <label class="btn btn-primary btn-sm d-flex align-items-center gap-1 cursor-pointer">
+            <input type="radio" name="marks" value="13" checked> 13 Marks (Major Essay)
+          </label>
+          <label class="btn btn-secondary btn-sm d-flex align-items-center gap-1 cursor-pointer">
+            <input type="radio" name="marks" value="16"> 16 Marks (Full University Problem)
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" id="exam-submit-btn" style="width: 100%; padding: 0.85rem;">
+        <i data-lucide="sparkles"></i> Synthesize Model Exam Answer
+      </button>
+    </form>
+  </div>
+
+  <!-- Rendered Exam Answer Container -->
+  <div id="exam-output-container" class="card p-4" style="display: none;">
+    <!-- Meta Bar -->
+    <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-4">
+      <div>
+        <span class="status-badge mb-1" id="exam-marks-badge">13 Marks Answer</span>
+        <h2 id="exam-topic-heading" class="text-primary mt-1">Answer Title</h2>
+      </div>
+      <div class="text-right" style="text-align: right;">
+        <div class="stat-chip mb-1">
+          <i data-lucide="file-text"></i> <span id="exam-word-count">~620 Words</span>
+        </div>
+        <small class="text-muted d-block" id="exam-time-tip">Target time: 18 mins</small>
+      </div>
+    </div>
+
+    <!-- Structured Sections -->
+    <div id="exam-body-sections">
+      <!-- Injected -->
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('exam-gen-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const topic = document.getElementById('exam-topic').value.trim();
+  const marks = parseInt(document.querySelector('input[name="marks"]:checked').value) || 13;
+
+  const btn = document.getElementById('exam-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Writing University Master Answer...';
+
+  try {
+    const res = await apiRequest('/api/exam/generate', 'POST', { topic, marks });
+    const data = res.data;
+
+    document.getElementById('exam-marks-badge').textContent = `${data.marks} MARKS RUBRIC`;
+    document.getElementById('exam-topic-heading').textContent = data.topic;
+    document.getElementById('exam-word-count').textContent = `~${data.word_count_estimate} Words`;
+    document.getElementById('exam-time-tip').textContent = data.time_management_tip;
+
+    const body = document.getElementById('exam-body-sections');
+    body.innerHTML = '';
+
+    const ans = data.structured_answer;
+
+    // Helper to add clean section
+    const addSection = (title, content, isPre = false) => {
+      if (!content) return;
+      const sec = document.createElement('div');
+      sec.className = 'mb-4';
+
+      let renderedContent = '';
+      if (Array.isArray(content)) {
+        renderedContent = `<ul class="styled-list">${content.map(c => `<li>${c}</li>`).join('')}</ul>`;
+      } else if (isPre) {
+        renderedContent = `<pre class="p-3 bg-surface-elevated font-mono" style="border-radius: var(--radius-md); overflow-x: auto; font-size: 0.85rem; border: 1px solid var(--border-subtle);">${content}</pre>`;
+      } else {
+        renderedContent = `<p style="line-height: 1.7;">${content}</p>`;
+      }
+
+      sec.innerHTML = `<h4 class="text-primary mb-2">${title}</h4>${renderedContent}`;
+      body.appendChild(sec);
+    };
+
+    if (ans.introduction) addSection('1. Introduction', ans.introduction);
+    if (ans.definition) addSection('2. Formal Definition & Principles', ans.definition);
+    if (ans.diagram_representation) addSection('3. Architectural / Flow Diagram Representation', ans.diagram_representation, true);
+    if (ans.detailed_explanation) addSection('4. In-Depth Mechanistic Explanation', ans.detailed_explanation);
+    if (ans.example_or_derivation) addSection('5. Practical Worked Walkthrough / Derivation', ans.example_or_derivation);
+    if (ans.advantages) addSection('6. Key Advantages & Merits', ans.advantages);
+    if (ans.limitations) addSection('7. Constraints & Limitations', ans.limitations);
+    if (ans.applications) addSection('8. Industrial Applications', ans.applications);
+    if (ans.conclusion) addSection('9. Evaluator Conclusion', ans.conclusion);
+
+    document.getElementById('exam-output-container').style.display = 'block';
+    if (window.lucide) lucide.createIcons();
+    showToast('Exam answer synthesized successfully!', 'success');
+  } catch (err) {
+    showToast('Failed to generate exam answer.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="sparkles"></i> Synthesize Model Exam Answer';
+    if (window.lucide) lucide.createIcons();
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard – EduGenie AI Learning Assistant{% endblock %}
+{% block page_title %}Scholar Dashboard{% endblock %}
+
+{% block content %}
+<!-- Top Metrics Overview -->
+<div class="metrics-grid">
+  <div class="metric-card">
+    <div class="metric-icon-box primary">
+      <i data-lucide="clock"></i>
+    </div>
+    <div class="metric-details">
+      <span class="metric-title">Total Study Time</span>
+      <span class="metric-value" id="stat-study-time">4.0 hrs</span>
+      <span class="metric-delta positive"><i data-lucide="arrow-up-right"></i> +45m this week</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-icon-box emerald">
+      <i data-lucide="check-circle-2"></i>
+    </div>
+    <div class="metric-details">
+      <span class="metric-title">Quiz Accuracy</span>
+      <span class="metric-value" id="stat-quiz-accuracy">82.5%</span>
+      <span class="metric-delta positive"><i data-lucide="trending-up"></i> Top 15% percentile</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-icon-box cyan">
+      <i data-lucide="help-circle"></i>
+    </div>
+    <div class="metric-details">
+      <span class="metric-title">Questions Resolved</span>
+      <span class="metric-value" id="stat-questions-count">12</span>
+      <span class="metric-delta neutral"><i data-lucide="activity"></i> Active inquiry</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-icon-box amber">
+      <i data-lucide="flame"></i>
+    </div>
+    <div class="metric-details">
+      <span class="metric-title">Study Streak</span>
+      <span class="metric-value" id="stat-streak-count">5 Days</span>
+      <span class="metric-delta positive"><i data-lucide="zap"></i> Streak bonus active</span>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-grid">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="bar-chart-2"></i> Weekly Study Distribution</h3>
+      <span class="status-badge">Daily Minutes</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="weeklyActivityChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="pie-chart"></i> Accuracy Ratio</h3>
+    </div>
+    <div class="chart-container">
+      <canvas id="quizAccuracyChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Adaptive Recommendations & Diagnostic Areas -->
+<div class="grid-2-col" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <!-- Adaptive AI Learning Targets -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="sparkles"></i> Adaptive AI Recommendations</h3>
+      <span class="status-badge demo">Auto-Targeted</span>
+    </div>
+    <p class="text-muted mb-3" style="font-size: 0.85rem;">
+      EduGenie analyzes your quiz results to generate customized micro-study paths.
+    </p>
+    <div id="dash-recommendations-list">
+      <!-- Populated dynamically by dashboard.js -->
+    </div>
+  </div>
+
+  <!-- Diagnostic Breakdown -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="crosshair"></i> Conceptual Diagnostic</h3>
+    </div>
+    
+    <div class="mb-4">
+      <strong class="text-rose d-block mb-2"><i data-lucide="alert-triangle"></i> Identified Weak Areas:</strong>
+      <div id="dash-weak-areas" class="d-flex flex-wrap gap-2">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <div>
+      <strong class="text-emerald d-block mb-2"><i data-lucide="shield-check"></i> Mastered Strengths:</strong>
+      <div id="dash-strong-areas" class="d-flex flex-wrap gap-2">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Badges & Gamification Rack -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h3 class="card-title"><i data-lucide="award"></i> Earned Scholar Badges</h3>
+    <a href="/progress" class="btn btn-secondary btn-sm">View All Badges</a>
+  </div>
+  <div class="badges-container" id="dash-badges-container">
+    <!-- Populated dynamically -->
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

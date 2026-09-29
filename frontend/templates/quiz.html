@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Diagnostic Quiz – EduGenie{% endblock %}
+{% block page_title %}Diagnostic MCQ Quiz Engine{% endblock %}
+
+{% block content %}
+<div class="max-w-900 mx-auto" style="max-width: 860px; margin: 0 auto;">
+  
+  <!-- Step 1: Quiz Configuration Card -->
+  <div class="card mb-4" id="quiz-setup-card">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="sparkles"></i> Generate AI Diagnostic Quiz</h3>
+      <span class="status-badge">Instant Generation</span>
+    </div>
+    <p class="text-muted mb-4">
+      EduGenie creates targeted university-level multiple choice questions with detailed rationale,
+      detects your weak areas, and rewards XP.
+    </p>
+
+    <form id="quiz-generate-form">
+      <div class="form-group">
+        <label class="form-label" for="quiz-topic">Academic Subject or Concept</label>
+        <input type="text" id="quiz-topic" class="form-input" placeholder="e.g. Binary Search Trees, SQL JOINs, Operating System Deadlocks" required value="Binary Search Trees">
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap mb-4">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('quiz-topic').value='Binary Search Trees'">BST & Trees</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('quiz-topic').value='SQL JOINs & Normalization'">SQL JOINs</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('quiz-topic').value='Dynamic Programming'">Dynamic Programming</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('quiz-topic').value='REST APIs & HTTP Protocols'">HTTP Protocols</button>
+      </div>
+
+      <div class="d-flex gap-3 mb-4">
+        <div class="form-group flex-1" style="flex: 1;">
+          <label class="form-label" for="quiz-num-questions">Question Count</label>
+          <select id="quiz-num-questions" class="form-select">
+            <option value="3">3 Questions (Quick Sprint)</option>
+            <option value="5" selected>5 Questions (Standard Diagnostic)</option>
+            <option value="10">10 Questions (Comprehensive Test)</option>
+          </select>
+        </div>
+
+        <div class="form-group flex-1" style="flex: 1;">
+          <label class="form-label" for="quiz-difficulty">Difficulty Level</label>
+          <select id="quiz-difficulty" class="form-select">
+            <option value="easy">Easy (Fundamentals)</option>
+            <option value="medium" selected>Medium (Application)</option>
+            <option value="hard">Hard (Advanced Edge Cases)</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" id="quiz-generate-btn" style="width: 100%; padding: 0.85rem;">
+        <i data-lucide="zap"></i> Start Diagnostic Quiz
+      </button>
+    </form>
+  </div>
+
+  <!-- Step 2: Active Quiz Runner Card -->
+  <div class="card mb-4" id="quiz-active-card" style="display: none;">
+    <div class="quiz-header-bar">
+      <div>
+        <span class="text-muted" style="font-size: 0.85rem;">Question <strong id="current-q-num">1</strong> of <strong id="total-q-num">5</strong></span>
+      </div>
+      <div class="quiz-timer">
+        <i data-lucide="clock"></i> <span id="quiz-timer-display">05:00</span>
+      </div>
+    </div>
+
+    <!-- Question Title -->
+    <h3 id="quiz-question-text" class="mb-4" style="line-height: 1.4; font-size: 1.25rem;">
+      Question text loading...
+    </h3>
+
+    <!-- Options List -->
+    <div class="quiz-options-list" id="quiz-options-container">
+      <!-- Options injected by quiz.js -->
+    </div>
+
+    <!-- Runner Navigation Buttons -->
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <button type="button" class="btn btn-secondary" id="quiz-prev-btn" onclick="prevQuestion()">
+        <i data-lucide="chevron-left"></i> Previous
+      </button>
+
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary" id="quiz-next-btn" onclick="nextQuestion()">
+          Next <i data-lucide="chevron-right"></i>
+        </button>
+        <button type="button" class="btn btn-accent" id="quiz-submit-btn" onclick="submitQuiz()" style="display: none;">
+          <i data-lucide="check-circle-2"></i> Submit & Grade Quiz
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Diagnostic Results & Weak Area Insights Card -->
+  <div class="card mb-4" id="quiz-results-card" style="display: none;">
+    <div class="text-center p-4">
+      <div class="metric-icon-box emerald mx-auto mb-3" style="width: 68px; height: 68px; margin: 0 auto 1rem;">
+        <i data-lucide="award" style="font-size: 2.2rem;"></i>
+      </div>
+      <h2>Quiz Evaluation Complete!</h2>
+      <p class="text-muted">Here is your performance breakdown and concept diagnostics.</p>
+
+      <div class="d-flex justify-content-center gap-4 my-4">
+        <div class="card p-3" style="min-width: 140px;">
+          <small class="text-muted">Final Score</small>
+          <h3 id="result-score" class="text-primary mt-1">4 / 5</h3>
+        </div>
+        <div class="card p-3" style="min-width: 140px;">
+          <small class="text-muted">Accuracy</small>
+          <h3 id="result-percentage" class="text-emerald mt-1">80.0%</h3>
+        </div>
+        <div class="card p-3" style="min-width: 140px;">
+          <small class="text-muted">XP Awarded</small>
+          <h3 id="result-xp" class="text-amber mt-1">+90 XP</h3>
+        </div>
+      </div>
+
+      <!-- Detected Weak Areas -->
+      <div class="card p-3 bg-surface-elevated text-left mb-4" style="text-align: left;">
+        <strong class="text-rose d-block mb-2"><i data-lucide="alert-circle"></i> Weak Areas Requiring Attention:</strong>
+        <ul id="result-weak-topics" class="styled-list mb-0">
+          <!-- Populated -->
+        </ul>
+      </div>
+
+      <!-- Question by question review -->
+      <div class="text-left mt-4" style="text-align: left;">
+        <h4 class="mb-3">Detailed Rationale & Review:</h4>
+        <div id="result-reviews-container"></div>
+      </div>
+
+      <div class="d-flex justify-content-center gap-3 mt-4">
+        <button type="button" class="btn btn-secondary" onclick="resetQuiz()">
+          <i data-lucide="refresh-cw"></i> Take Another Quiz
+        </button>
+        <a href="/dashboard" class="btn btn-primary">
+          <i data-lucide="arrow-right"></i> Return to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/quiz.js"></script>
+{% endblock %}

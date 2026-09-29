@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Progress & Gamification – EduGenie{% endblock %}
+{% block page_title %}Learning Analytics & Gamification{% endblock %}
+
+{% block content %}
+<div class="max-w-1000 mx-auto" style="max-width: 960px; margin: 0 auto;">
+  
+  <!-- Stats Highlights -->
+  <div class="metrics-grid mb-4">
+    <div class="metric-card">
+      <div class="metric-icon-box primary">
+        <i data-lucide="award"></i>
+      </div>
+      <div class="metric-details">
+        <span class="metric-title">Total Experience (XP)</span>
+        <span class="metric-value" id="prog-xp-val">350 XP</span>
+        <span class="metric-delta positive"><i data-lucide="zap"></i> Active Learner</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon-box amber">
+        <i data-lucide="flame"></i>
+      </div>
+      <div class="metric-details">
+        <span class="metric-title">Study Streak</span>
+        <span class="metric-value" id="prog-streak-val">5 Days</span>
+        <span class="metric-delta positive"><i data-lucide="trending-up"></i> Consistency bonus</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon-box emerald">
+        <i data-lucide="clock"></i>
+      </div>
+      <div class="metric-details">
+        <span class="metric-title">Logged Study Time</span>
+        <span class="metric-value" id="prog-total-hours">4.0 hrs</span>
+        <span class="metric-delta neutral"><i data-lucide="activity"></i> Academic focus</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+    <!-- Study Session Logger Form -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i data-lucide="plus-circle"></i> Log Study Session</h3>
+        <span class="status-badge">+2 XP / min</span>
+      </div>
+      <form id="log-session-form">
+        <div class="form-group">
+          <label class="form-label" for="session-topic">Subject or Topic Studied</label>
+          <input type="text" id="session-topic" class="form-input" placeholder="e.g. Graph Algorithms, Compiler Design" required>
+        </div>
+
+        <div class="d-flex gap-3 mb-4">
+          <div class="form-group flex-1" style="flex: 1;">
+            <label class="form-label" for="session-duration">Duration (Minutes)</label>
+            <input type="number" id="session-duration" class="form-input" min="5" max="360" value="30" required>
+          </div>
+          <div class="form-group flex-1" style="flex: 1;">
+            <label class="form-label" for="session-type">Session Type</label>
+            <select id="session-type" class="form-select">
+              <option value="practice">Practice & Drills</option>
+              <option value="reading">Textbook Reading</option>
+              <option value="quiz">Diagnostic Quiz</option>
+              <option value="revision">Revision & Flashcards</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" style="width: 100%; padding: 0.8rem;">
+          <i data-lucide="check"></i> Record Session & Claim XP
+        </button>
+      </form>
+    </div>
+
+    <!-- Recent Session Logs -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i data-lucide="history"></i> Recent Study Logs</h3>
+      </div>
+      <div id="recent-sessions-list">
+        <!-- Rendered by progress.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- All Badges Showcase -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="trophy"></i> Scholar Badges & Milestones</h3>
+      <span class="status-badge">Unlocked Milestones</span>
+    </div>
+    <div class="badges-container" id="all-badges-rack">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/progress.js"></script>
+{% endblock %}

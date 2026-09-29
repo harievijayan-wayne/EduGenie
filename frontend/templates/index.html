@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGenie – Google Gemini Powered AI Learning Assistant</title>
+  <meta name="description" content="Learn Smarter. Understand Faster. Grow Better. Production-ready Generative AI educational platform.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/responsive.css">
+  <style>
+    .landing-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-surface-glass);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .hero-section {
+      padding: 6rem 2rem 5rem;
+      text-align: center;
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1.1rem;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-full);
+      color: var(--primary);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 1.5rem;
+    }
+    .hero-gradient {
+      background: linear-gradient(135deg, #fff 30%, var(--primary) 70%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 700px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-cta {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.75rem;
+      max-width: 1200px;
+      margin: 4rem auto;
+      padding: 0 2rem;
+    }
+    .feature-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      transition: all var(--transition-fast);
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-glow);
+    }
+    .step-card {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+    }
+    .step-number {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .landing-footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Navigation -->
+  <nav class="landing-nav">
+    <div class="d-flex align-items-center gap-2">
+      <div class="brand-icon">
+        <i data-lucide="sparkles"></i>
+      </div>
+      <div class="brand-text">
+        <h2>EduGenie</h2>
+        <span>AI Study Companion</span>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn-icon" onclick="toggleTheme()" title="Toggle Theme">
+        <i data-lucide="sun" id="theme-toggle-icon"></i>
+      </button>
+      <a href="/login" class="btn btn-secondary">Sign In</a>
+      <a href="/dashboard" class="btn btn-primary">Open Workspace</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-badge">
+      <i data-lucide="sparkles"></i> Powered by Google Gemini 2.5 Flash
+    </div>
+    <h1 class="hero-title">
+      Learn Smarter. Understand Faster. <br>
+      <span class="hero-gradient">Grow Better.</span>
+    </h1>
+    <p class="hero-subtitle">
+      EduGenie is an intelligent, production-ready AI study companion. Experience Socratic tutoring, 
+      document RAG analysis, adaptive quizzes, multilingual breakdowns, and exam answer synthesis.
+    </p>
+    <div class="hero-cta">
+      <a href="/dashboard" class="btn btn-primary btn-lg">
+        <i data-lucide="rocket"></i> Start Learning Now
+      </a>
+      <a href="/tutor" class="btn btn-secondary btn-lg">
+        <i data-lucide="bot"></i> Try Socratic AI Tutor
+      </a>
+    </div>
+  </section>
+
+  <!-- Key Capabilities Grid -->
+  <section class="feature-grid">
+    <div class="feature-card">
+      <div class="metric-icon-box primary mb-3">
+        <i data-lucide="bot"></i>
+      </div>
+      <h3 class="mb-2">Socratic AI Tutor</h3>
+      <p class="text-muted">
+        Engages through guided inquiry, scaffolded hints, and checks instead of superficial answer dumps.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="metric-icon-box cyan mb-3">
+        <i data-lucide="file-text"></i>
+      </div>
+      <h3 class="mb-2">Document RAG & Vector Search</h3>
+      <p class="text-muted">
+        Upload textbook PDFs or lecture notes. Ask questions grounded strictly in your document chunks.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="metric-icon-box emerald mb-3">
+        <i data-lucide="help-circle"></i>
+      </div>
+      <h3 class="mb-2">Diagnostic MCQ Quizzes</h3>
+      <p class="text-muted">
+        Generates timed quizzes with deep answer explanations, XP gamification, and automated weak topic diagnosis.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="metric-icon-box amber mb-3">
+        <i data-lucide="languages"></i>
+      </div>
+      <h3 class="mb-2">Multilingual & ELI5 Explanations</h3>
+      <p class="text-muted">
+        Understand complex theories in Simple English, playful ELI5 analogies, pure Tamil, or conversational Tanglish.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="metric-icon-box primary mb-3">
+        <i data-lucide="award"></i>
+      </div>
+      <h3 class="mb-2">Exam Answer Synthesizer</h3>
+      <p class="text-muted">
+        Calibrated for 2, 5, 10, 13, and 16 mark university rubrics with architectural ASCII diagrams and word count tips.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="metric-icon-box cyan mb-3">
+        <i data-lucide="mic"></i>
+      </div>
+      <h3 class="mb-2">Voice & Multimodal Vision</h3>
+      <p class="text-muted">
+        Speak questions with Web Speech API audio, and upload textbook diagrams or handwritten notes for instant AI resolution.
+      </p>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section style="max-width: 900px; margin: 4rem auto; padding: 0 2rem;">
+    <div class="text-center mb-5">
+      <span class="status-badge mb-2">Workflow</span>
+      <h2>How EduGenie Accelerates Mastery</h2>
+    </div>
+
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <div>
+        <h4>Ask, Upload, or Upload Diagrams</h4>
+        <p class="text-muted">Input any academic question, upload class materials, or speak via your microphone.</p>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <div>
+        <h4>Gemini Cognitive Processing</h4>
+        <p class="text-muted">EduGenie synthesizes the context, isolates core axioms, and breaks problems down step-by-step.</p>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <div>
+        <h4>Active Practice & Flashcards</h4>
+        <p class="text-muted">Reinforce learning through diagnostic MCQs, spaced repetition flashcards, and summary notes.</p>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-number">4</div>
+      <div>
+        <h4>Adaptive Analytics & Weak Area Remediation</h4>
+        <p class="text-muted">Track study hours, earn achievement badges, and receive targeted AI topic recommendations.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <p><strong>EduGenie</strong> &copy; 2026. Built with Google Gemini 2.5 Flash, FastAPI & Modern Web Standards.</p>
+    <p class="mt-1" style="font-size: 0.8rem;">"Learn Smarter. Understand Faster. Grow Better."</p>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Active Recall Flashcards – EduGenie{% endblock %}
+{% block page_title %}Active Recall Flashcards{% endblock %}
+
+{% block content %}
+<div class="flashcards-container">
+  
+  <!-- Generation Form Card -->
+  <div class="card w-100 mb-4" style="width: 100%;">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="layers"></i> Flashcard Deck Generator</h3>
+      <span class="status-badge">Spaced Repetition</span>
+    </div>
+    
+    <form id="flashcard-gen-form" class="d-flex gap-2">
+      <input type="text" id="fc-topic" class="form-input flex-1" placeholder="Enter topic (e.g. Operating System Kernels, Database Normalization)" required value="Operating System Concepts">
+      <select id="fc-count" class="form-select" style="width: auto;">
+        <option value="4">4 Cards</option>
+        <option value="6" selected>6 Cards</option>
+        <option value="10">10 Cards</option>
+      </select>
+      <button type="submit" class="btn btn-primary" id="fc-gen-btn" style="white-space: nowrap;">
+        <i data-lucide="zap"></i> Generate
+      </button>
+    </form>
+  </div>
+
+  <!-- 3D Interactive Card Scene -->
+  <div class="flashcard-3d-scene" onclick="flipActiveCard()">
+    <div class="flashcard-inner" id="flashcard-inner">
+      <!-- Front: Question -->
+      <div class="flashcard-front">
+        <div class="d-flex justify-content-between align-items-center w-100 mb-auto" style="position: absolute; top: 1.5rem; left: 1.5rem; right: 1.5rem; width: calc(100% - 3rem);">
+          <span class="status-badge" id="fc-difficulty-badge">Medium</span>
+          <span class="text-muted font-mono" id="fc-counter-display">Card 1 / 5</span>
+        </div>
+
+        <h3 id="fc-question-text" style="font-size: 1.35rem; line-height: 1.5; max-width: 85%;">
+          Click 'Generate' to create flashcards on your chosen topic.
+        </h3>
+        
+        <p class="flashcard-hint" id="fc-hint-text">
+          💡 Hint: Click card anywhere to flip and reveal answer.
+        </p>
+
+        <small class="text-muted" style="position: absolute; bottom: 1.25rem;">
+          <i data-lucide="rotate-cw"></i> Click anywhere to flip
+        </small>
+      </div>
+
+      <!-- Back: Answer -->
+      <div class="flashcard-back">
+        <div class="d-flex justify-content-between align-items-center w-100 mb-auto" style="position: absolute; top: 1.5rem; left: 1.5rem; right: 1.5rem; width: calc(100% - 3rem);">
+          <span class="status-badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">Answer</span>
+          <button class="btn-icon" style="width: 28px; height: 28px;" onclick="event.stopPropagation(); voiceAssistant.speak(document.getElementById('fc-answer-text').textContent)" title="Read Answer">
+            <i data-lucide="volume-2" style="font-size: 0.9rem;"></i>
+          </button>
+        </div>
+
+        <p id="fc-answer-text" style="font-size: 1.2rem; font-weight: 500; line-height: 1.6; max-width: 85%;">
+          Answer will appear here.
+        </p>
+
+        <small class="text-muted" style="position: absolute; bottom: 1.25rem;">
+          <i data-lucide="rotate-ccw"></i> Click to flip back
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Deck Navigation & Status Controls -->
+  <div class="d-flex justify-content-between align-items-center w-100 mt-2" style="width: 100%;">
+    <button class="btn btn-secondary" id="fc-prev-btn" onclick="prevFlashcard()">
+      <i data-lucide="chevron-left"></i> Previous
+    </button>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-secondary" onclick="markCardStatus(false, true)" title="Mark as Difficult">
+        <i data-lucide="alert-circle" class="text-rose"></i> Tricky
+      </button>
+      <button class="btn btn-secondary" onclick="markCardStatus(true, false)" title="Mark as Known">
+        <i data-lucide="check" class="text-emerald"></i> Mastered
+      </button>
+    </div>
+
+    <button class="btn btn-primary" id="fc-next-btn" onclick="nextFlashcard()">
+      Next <i data-lucide="chevron-right"></i>
+    </button>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let flashcardsDeck = [];
+let currentCardIndex = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('flashcard-gen-form');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const topic = document.getElementById('fc-topic').value.trim();
+      const num_cards = parseInt(document.getElementById('fc-count').value) || 6;
+      
+      const btn = document.getElementById('fc-gen-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generating...';
+
+      try {
+        const res = await apiRequest('/api/flashcards/generate', 'POST', { topic, num_cards });
+        flashcardsDeck = res.data.flashcards;
+        currentCardIndex = 0;
+        renderActiveFlashcard();
+        showToast(`Loaded ${flashcardsDeck.length} flashcards!`, 'success');
+      } catch (err) {
+        showToast('Flashcard generation failed.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="zap"></i> Generate';
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+  }
+});
+
+function flipActiveCard() {
+  const inner = document.getElementById('flashcard-inner');
+  if (inner) inner.classList.toggle('flipped');
+}
+
+function renderActiveFlashcard() {
+  const inner = document.getElementById('flashcard-inner');
+  if (inner) inner.classList.remove('flipped');
+
+  if (!flashcardsDeck || flashcardsDeck.length === 0) return;
+
+  const card = flashcardsDeck[currentCardIndex];
+  document.getElementById('fc-counter-display').textContent = `Card ${currentCardIndex + 1} / ${flashcardsDeck.length}`;
+  document.getElementById('fc-difficulty-badge').textContent = (card.difficulty || 'Medium').toUpperCase();
+  document.getElementById('fc-question-text').textContent = card.question;
+  document.getElementById('fc-answer-text').textContent = card.answer;
+  document.getElementById('fc-hint-text').textContent = card.hint ? `💡 Hint: ${card.hint}` : '💡 Click card anywhere to flip and reveal answer.';
+
+  document.getElementById('fc-prev-btn').disabled = currentCardIndex === 0;
+  document.getElementById('fc-next-btn').disabled = currentCardIndex === flashcardsDeck.length - 1;
+}
+
+function nextFlashcard() {
+  if (currentCardIndex < flashcardsDeck.length - 1) {
+    currentCardIndex++;
+    renderActiveFlashcard();
+  }
+}
+
+function prevFlashcard() {
+  if (currentCardIndex > 0) {
+    currentCardIndex--;
+    renderActiveFlashcard();
+  }
+}
+
+async function markCardStatus(isKnown, isDifficult) {
+  if (!flashcardsDeck || flashcardsDeck.length === 0) return;
+  const card = flashcardsDeck[currentCardIndex];
+  if (card.id) {
+    try {
+      await apiRequest(`/api/flashcards/${card.id}/status?is_known=${isKnown}&is_difficult=${isDifficult}`, 'PUT');
+      showToast(isKnown ? 'Marked as Mastered (+5 XP)!' : 'Flagged for Spaced Revision!', 'info');
+      nextFlashcard();
+    } catch (err) {}
+  }
+}
+</script>
+{% endblock %}

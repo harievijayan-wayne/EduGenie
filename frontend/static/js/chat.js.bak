@@ -1,0 +1,362 @@
+﻿/**
+ * EduGenie Unified AI Chat & Tutor Workspace
+ * Supports: Academic Q&A, Socratic AI Tutor, Multilingual Explanations,
+ * Multimodal Visual Analysis, and Web Speech API.
+ */
+
+let currentMode = 'qa'; // 'qa', 'tutor', 'explain'
+let currentConversationId = null;
+let currentLanguage = 'English';
+let currentLevel = 'intermediate';
+
+// Configure marked.js for safe, clean rendering
+if (typeof marked !== 'undefined') {
+  marked.setOptions({
+    breaks: true,      // \n becomes <br>
+    gfm: true,         // GitHub Flavoured Markdown
+    headerIds: false,
+    mangle: false
+  });
+}
+
+/** Convert markdown string to sanitised HTML */
+function renderMarkdown(text) {
+  if (!text) return '';
+  if (typeof marked === 'undefined') return escapeHtml(text);
+  try {
+    return marked.parse(String(text));
+  } catch (e) {
+    return escapeHtml(text);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const chatMessages = document.getElementById('chat-messages');
+  const chatForm = document.getElementById('chat-form');
+  const chatInput = document.getElementById('chat-input');
+  const voiceBtn = document.getElementById('voice-input-btn');
+  const imageUploadInput = document.getElementById('image-upload-input');
+  const imageBtn = document.getElementById('image-upload-btn');
+  const modeTabs = document.querySelectorAll('.chat-tab');
+
+  // Check URL query parameters for default mode (e.g. /tutor -> mode 'tutor')
+  const path = window.location.pathname;
+  if (path.includes('/tutor')) {
+    setChatMode('tutor');
+  }
+
+  // Switch chat mode tabs
+  modeTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const mode = tab.dataset.mode;
+      setChatMode(mode);
+    });
+  });
+
+  function setChatMode(mode) {
+    currentMode = mode;
+    modeTabs.forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    
+    // Update placeholder
+    if (chatInput) {
+      if (mode === 'tutor') {
+        chatInput.placeholder = "Ask your Socratic Tutor anything (e.g. 'Can you guide me through binary search?')...";
+      } else if (mode === 'explain') {
+        chatInput.placeholder = "Enter any concept to explain (e.g. 'Recursion', 'Newton's Third Law')...";
+      } else {
+        chatInput.placeholder = "Ask any academic or technical question...";
+      }
+    }
+  }
+
+  // Chat Submission
+  if (chatForm) {
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      appendUserMessage(message);
+      chatInput.value = '';
+
+      const typingId = showTypingIndicator();
+
+      try {
+        if (currentMode === 'tutor') {
+          await handleTutorChat(message, 'chat', typingId);
+        } else if (currentMode === 'explain') {
+          await handleExplain(message, typingId);
+        } else {
+          await handleQA(message, typingId);
+        }
+      } catch (err) {
+        removeTypingIndicator(typingId);
+        appendAssistantMessage("EduGenie encountered a processing issue. Please check your network or try again.", null, true);
+      }
+    });
+  }
+
+  // Socratic Action Pill Buttons Trigger
+  window.triggerTutorAction = async (action) => {
+    const actionPrompts = {
+      'explain_simpler': "Could you please explain that simpler?",
+      'give_example': "Can you give me another concrete example?",
+      'quiz_me': "Quiz me on what we just discussed!",
+      'dont_understand': "I don't quite understand this part."
+    };
+
+    const userText = actionPrompts[action] || "Guide me further.";
+    appendUserMessage(userText);
+
+    const typingId = showTypingIndicator();
+    try {
+      await handleTutorChat(userText, action, typingId);
+    } catch (err) {
+      removeTypingIndicator(typingId);
+    }
+  };
+
+  // Voice Input (Speech-to-Text)
+  if (voiceBtn) {
+    voiceBtn.addEventListener('click', () => {
+      voiceAssistant.startListening(
+        (transcript) => {
+          if (chatInput) {
+            chatInput.value = transcript;
+            chatInput.focus();
+            showToast(`Heard: "${transcript}"`, 'info');
+          }
+        },
+        () => {
+          voiceBtn.classList.remove('listening');
+        }
+      );
+      voiceBtn.classList.add('listening');
+    });
+  }
+
+  // Image Upload (Multimodal Vision)
+  if (imageBtn && imageUploadInput) {
+    imageBtn.addEventListener('click', () => imageUploadInput.click());
+
+    imageUploadInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      appendUserMessage(`[Uploaded Image: ${file.name}]`);
+      const typingId = showTypingIndicator();
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('action', 'explain');
+
+        const res = await apiRequest('/api/documents/upload', 'POST', formData, true);
+        removeTypingIndicator(typingId);
+
+        if (res.data && res.data.analysis) {
+          appendAssistantMessage(res.data.analysis);
+        } else {
+          appendAssistantMessage("Image analyzed successfully. Ready for questions!");
+        }
+      } catch (err) {
+        removeTypingIndicator(typingId);
+      } finally {
+        imageUploadInput.value = '';
+      }
+    });
+  }
+
+  // ------------------ Service Request Handlers ------------------
+
+  async function handleQA(question, typingId) {
+    const subject = document.getElementById('chat-subject-select')?.value || 'Computer Science';
+    const level = document.getElementById('chat-level-select')?.value || 'intermediate';
+
+    const res = await apiRequest('/api/qa', 'POST', { question, subject, level });
+    removeTypingIndicator(typingId);
+
+    const data = res.data;
+    let formattedHtml = `<div class="qa-answer">${data.answer}</div>`;
+
+    if (data.key_points && data.key_points.length > 0) {
+      formattedHtml += `
+        <div class="mt-3">
+          <strong>Key Academic Points:</strong>
+          <ul class="styled-list">
+            ${data.key_points.map(pt => `<li>${pt}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    if (data.examples && data.examples.length > 0) {
+      formattedHtml += `
+        <div class="mt-3">
+          <strong>Examples & Applications:</strong>
+          <ul class="styled-list">
+            ${data.examples.map(ex => `<li>${ex}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    appendAssistantMessage(formattedHtml, data.answer);
+  }
+
+  async function handleExplain(topic, typingId) {
+    const language = document.getElementById('explain-lang-select')?.value || 'English';
+    const level = document.getElementById('explain-level-select')?.value || 'beginner';
+
+    const res = await apiRequest('/api/explain', 'POST', { topic, level, language });
+    removeTypingIndicator(typingId);
+
+    const data = res.data;
+    const formattedHtml = `
+      <div class="explain-card">
+        <h3 class="text-primary mb-2">${escapeHtml(data.concept)}</h3>
+        <div class="mb-3 md-body">${renderMarkdown(data.simple_explanation)}</div>
+        
+        <div class="example-box mb-3">
+          <strong>ðŸ“˜ Textbook Example:</strong>
+          <div class="md-body mt-1">${renderMarkdown(data.example)}</div>
+        </div>
+        <div class="example-box mb-3">
+          <strong>ðŸŒ Real-World Analogy:</strong>
+          <div class="md-body mt-1">${renderMarkdown(data.real_world_example)}</div>
+        </div>
+
+        <div class="mb-3">
+          <strong>âœ… Core Takeaways:</strong>
+          <ul class="styled-list">
+            ${data.key_points.map(k => `<li>${renderMarkdown(k)}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div>
+          <strong class="text-rose">âš ï¸ Common Mistakes to Avoid:</strong>
+          <ul class="styled-list">
+            ${data.common_mistakes.map(m => `<li>${renderMarkdown(m)}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    `;
+
+    appendAssistantMessage(formattedHtml, data.simple_explanation);
+  }
+
+  async function handleTutorChat(message, action, typingId) {
+    const topic = document.getElementById('chat-subject-select')?.value || 'Academic Concepts';
+
+    const res = await apiRequest('/api/tutor/chat', 'POST', {
+      message,
+      topic,
+      level: currentLevel,
+      conversation_id: currentConversationId,
+      action
+    });
+    removeTypingIndicator(typingId);
+
+    const data = res.data;
+    currentConversationId = data.conversation_id;
+
+    let extraPills = `
+      <div class="tutor-action-pill-bar">
+        <button class="tutor-pill" onclick="triggerTutorAction('explain_simpler')">
+          <i data-lucide="help-circle"></i> Explain Simpler
+        </button>
+        <button class="tutor-pill" onclick="triggerTutorAction('give_example')">
+          <i data-lucide="sparkles"></i> Give Another Example
+        </button>
+        <button class="tutor-pill" onclick="triggerTutorAction('quiz_me')">
+          <i data-lucide="check-square"></i> Quiz Me
+        </button>
+        <button class="tutor-pill" onclick="triggerTutorAction('dont_understand')">
+          <i data-lucide="alert-circle"></i> I Don't Understand
+        </button>
+      </div>
+    `;
+
+    let hintsHtml = '';
+    if (data.hints && data.hints.length > 0) {
+      hintsHtml = `
+        <div class="tutor-hints mt-2">
+          <small class="text-muted"><strong>Tutor Hint:</strong> ${escapeHtml(data.hints[0])}</small>
+        </div>
+      `;
+    }
+
+    const replyHtml = `<div class="md-body">${renderMarkdown(data.reply)}</div>`;
+    appendAssistantMessage(replyHtml + hintsHtml + extraPills, data.reply);
+  }
+
+  // ------------------ DOM Render Helpers ------------------
+
+  function appendUserMessage(text) {
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble user';
+    bubble.innerHTML = `
+      <div class="message-header">You</div>
+      <div class="message-content">${escapeHtml(text)}</div>
+    `;
+    chatMessages.appendChild(bubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function appendAssistantMessage(htmlContent, rawSpeechText = null, isError = false) {
+    const bubble = document.createElement('div');
+    bubble.className = `message-bubble assistant ${isError ? 'error-bubble' : ''}`;
+    
+    const speakText = rawSpeechText || stripHtml(htmlContent);
+    const escapedSpeech = encodeURIComponent(speakText.slice(0, 300));
+
+    bubble.innerHTML = `
+      <div class="message-header">
+        <span>EduGenie AI</span>
+        <button class="btn-icon" style="width: 26px; height: 26px;" onclick="voiceAssistant.speak(decodeURIComponent('${escapedSpeech}'))" title="Read Aloud">
+          <i data-lucide="volume-2" style="font-size: 0.9rem;"></i>
+        </button>
+      </div>
+      <div class="message-content">${htmlContent}</div>
+    `;
+    chatMessages.appendChild(bubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function showTypingIndicator() {
+    const id = 'typing-' + Date.now();
+    const ind = document.createElement('div');
+    ind.id = id;
+    ind.className = 'typing-indicator';
+    ind.innerHTML = `
+      <span class="text-muted" style="font-size: 0.82rem; margin-right: 0.5rem;">EduGenie is thinking...</span>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    `;
+    chatMessages.appendChild(ind);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return id;
+  }
+
+  function removeTypingIndicator(id) {
+    const ind = document.getElementById(id);
+    if (ind) ind.remove();
+  }
+
+  function escapeHtml(string) {
+    return String(string)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  }
+});
+

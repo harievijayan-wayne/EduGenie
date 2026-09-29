@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Path & Study Plan – EduGenie{% endblock %}
+{% block page_title %}Roadmaps & AI Study Plans{% endblock %}
+
+{% block content %}
+<div class="max-w-1000 mx-auto" style="max-width: 960px; margin: 0 auto;">
+  
+  <!-- Switcher Tabs -->
+  <div class="d-flex gap-2 mb-4">
+    <button class="btn btn-primary" id="tab-path-btn" onclick="switchPlanTab('path')">
+      <i data-lucide="map"></i> 6-Stage Mastery Roadmap
+    </button>
+    <button class="btn btn-secondary" id="tab-plan-btn" onclick="switchPlanTab('plan')">
+      <i data-lucide="calendar"></i> Exam Calendar Study Plan
+    </button>
+  </div>
+
+  <!-- TAB 1: 6-Stage Learning Path Generator -->
+  <div id="section-path" class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="compass"></i> Personalized Curriculum Architect</h3>
+      <span class="status-badge">Beginner → Advanced</span>
+    </div>
+    <p class="text-muted mb-4">
+      Generates progressive academic checkpoints from foundational syntax to capstone engineering projects.
+    </p>
+
+    <form id="path-generate-form" class="mb-4">
+      <div class="form-group">
+        <label class="form-label" for="path-topic">Target Subject or Skill</label>
+        <input type="text" id="path-topic" class="form-input" placeholder="e.g. Distributed Systems, Machine Learning, Full-Stack Web Development" required value="Distributed Systems & Cloud Architecture">
+      </div>
+
+      <div class="d-flex gap-3 mb-4">
+        <div class="form-group flex-1" style="flex: 1;">
+          <label class="form-label" for="path-level">Current Learner Level</label>
+          <select id="path-level" class="form-select">
+            <option value="Beginner">Beginner (No prior exposure)</option>
+            <option value="Intermediate" selected>Intermediate (Familiar with fundamentals)</option>
+            <option value="Advanced">Advanced (Refining edge cases)</option>
+          </select>
+        </div>
+
+        <div class="form-group flex-1" style="flex: 1;">
+          <label class="form-label" for="path-duration">Target Duration</label>
+          <select id="path-duration" class="form-select">
+            <option value="2 Weeks">2 Weeks (Intensive Bootcamp)</option>
+            <option value="4 Weeks" selected>4 Weeks (Balanced Semester Pace)</option>
+            <option value="8 Weeks">8 Weeks (Comprehensive Mastery)</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" id="path-submit-btn" style="width: 100%; padding: 0.85rem;">
+        <i data-lucide="sparkles"></i> Synthesize 6-Stage Roadmap
+      </button>
+    </form>
+
+    <!-- Roadmap Output Timeline -->
+    <div id="roadmap-output-container" style="display: none;">
+      <h3 class="mt-4 mb-3 text-primary" id="roadmap-title-display">Generated Roadmap</h3>
+      <div class="roadmap-timeline" id="roadmap-stages-timeline">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: AI Study Plan Calendar Scheduler -->
+  <div id="section-plan" class="card mb-4" style="display: none;">
+    <div class="card-header">
+      <h3 class="card-title"><i data-lucide="calendar"></i> Daily Exam Preparation Calendar</h3>
+      <span class="status-badge demo">Spaced Repetition</span>
+    </div>
+    <p class="text-muted mb-4">
+      Calibrates daily study hours, mock tests, and rest periods leading up to your final exam date.
+    </p>
+
+    <form id="studyplan-generate-form" class="mb-4">
+      <div class="d-flex gap-3 mb-3">
+        <div class="form-group flex-1" style="flex: 1;">
+          <label class="form-label" for="plan-exam-date">Target Exam Date</label>
+          <input type="date" id="plan-exam-date" class="form-input" required value="2026-10-15">
+        </div>
+        <div class="form-group flex-1" style="flex: 1;">
+          <label class="form-label" for="plan-hours">Daily Available Hours</label>
+          <input type="number" id="plan-hours" class="form-input" min="1" max="12" step="0.5" value="3.5" required>
+        </div>
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label" for="plan-subjects">Subjects (comma separated)</label>
+        <input type="text" id="plan-subjects" class="form-input" placeholder="e.g. Database Systems, Computer Networks, Operating Systems" value="Database Systems, Computer Networks, Software Engineering">
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" id="plan-submit-btn" style="width: 100%; padding: 0.85rem;">
+        <i data-lucide="clock"></i> Generate Actionable 7-Day Schedule
+      </button>
+    </form>
+
+    <!-- Schedule Output -->
+    <div id="studyplan-output-container" style="display: none;">
+      <h3 class="mt-4 mb-3 text-primary">Your Daily Study Calendar</h3>
+      <div id="studyplan-days-container" class="d-flex flex-column gap-3">
+        <!-- Injected -->
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchPlanTab(tab) {
+  const isPath = tab === 'path';
+  document.getElementById('section-path').style.display = isPath ? 'block' : 'none';
+  document.getElementById('section-plan').style.display = isPath ? 'none' : 'block';
+  
+  document.getElementById('tab-path-btn').className = isPath ? 'btn btn-primary' : 'btn btn-secondary';
+  document.getElementById('tab-plan-btn').className = isPath ? 'btn btn-secondary' : 'btn btn-primary';
+}
+
+document.getElementById('path-generate-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const topic = document.getElementById('path-topic').value.trim();
+  const current_level = document.getElementById('path-level').value;
+  const duration = document.getElementById('path-duration').value;
+  
+  const btn = document.getElementById('path-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generating 6-Stage Roadmap...';
+
+  try {
+    const res = await apiRequest('/api/learn/recommendations', 'POST', {
+      topic,
+      current_level,
+      duration,
+      hours_per_day: 2.0
+    });
+
+    const data = res.data;
+    const container = document.getElementById('roadmap-stages-timeline');
+    container.innerHTML = '';
+
+    document.getElementById('roadmap-title-display').textContent = `${data.topic} • ${data.estimated_weeks} Roadmap`;
+
+    data.stages.forEach((stage, i) => {
+      const card = document.createElement('div');
+      card.className = 'roadmap-stage';
+      card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h4 class="text-primary font-weight-bold">Stage ${i+1}: ${stage.stage_name} – ${stage.topic}</h4>
+          <span class="status-badge">${stage.estimated_time}</span>
+        </div>
+        <div class="mb-2">
+          <strong>Subtopics:</strong>
+          <div class="d-flex flex-wrap gap-1 mt-1">
+            ${stage.subtopics.map(st => `<span class="stat-chip">${st}</span>`).join('')}
+          </div>
+        </div>
+        <div class="mb-2">
+          <strong>Hands-On Tasks:</strong>
+          <ul class="styled-list mt-1">
+            ${stage.practice_tasks.map(pt => `<li>${pt}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="p-2 bg-surface-elevated" style="border-radius: var(--radius-md); font-size: 0.85rem;">
+          <strong class="text-amber"><i data-lucide="check-circle"></i> Checkpoint Milestone:</strong> ${stage.checkpoint?.milestone || 'Stage Complete'}
+          <br><small class="text-muted">Assessment Drill: ${stage.checkpoint?.assessment_question || 'Review core axioms'}</small>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById('roadmap-output-container').style.display = 'block';
+    if (window.lucide) lucide.createIcons();
+  } catch (err) {
+    showToast('Failed to generate learning path.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="sparkles"></i> Synthesize 6-Stage Roadmap';
+    if (window.lucide) lucide.createIcons();
+  }
+});
+
+document.getElementById('studyplan-generate-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const exam_date = document.getElementById('plan-exam-date').value;
+  const hours_per_day = parseFloat(document.getElementById('plan-hours').value) || 3.0;
+  const subjects = document.getElementById('plan-subjects').value.split(',').map(s => s.trim()).filter(Boolean);
+
+  const btn = document.getElementById('plan-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generating Schedule...';
+
+  try {
+    const res = await apiRequest('/api/learning/study-plan', 'POST', {
+      exam_date,
+      hours_per_day,
+      subjects
+    });
+
+    const data = res.data;
+    const container = document.getElementById('studyplan-days-container');
+    container.innerHTML = '';
+
+    data.study_plan.forEach(item => {
+      const card = document.createElement('div');
+      card.className = `card p-3 ${item.mock_test_scheduled ? 'border-primary' : ''}`;
+      card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <strong>${item.day} <span class="text-muted">(${item.date_label})</span></strong>
+          <span class="status-badge ${item.mock_test_scheduled ? 'demo' : ''}">
+            ${item.mock_test_scheduled ? 'Mock Exam Scheduled' : 'Study Sprint'}
+          </span>
+        </div>
+        <p class="mb-1"><strong>Subjects:</strong> ${item.subjects.join(', ')}</p>
+        <p class="mb-1"><strong>Topics:</strong> ${item.topics_to_cover.join('; ')}</p>
+        <p class="mb-1"><strong class="text-emerald">Practice Focus:</strong> ${item.practice_focus}</p>
+        <p class="mb-1"><strong class="text-cyan">Revision:</strong> ${item.revision_items.join(', ')}</p>
+        <small class="text-muted">Break Protocol: ${item.break_recommendations}</small>
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById('studyplan-output-container').style.display = 'block';
+  } catch (err) {
+    showToast('Failed to generate study plan.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="clock"></i> Generate Actionable 7-Day Schedule';
+    if (window.lucide) lucide.createIcons();
+  }
+});
+</script>
+{% endblock %}

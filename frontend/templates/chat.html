@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}AI Workspace – EduGenie{% endblock %}
+{% block page_title %}AI Study Workspace{% endblock %}
+
+{% block content %}
+<div class="chat-workspace">
+  <!-- Mode Selection & Controls Header -->
+  <div class="chat-header">
+    <div class="chat-tabs">
+      <button class="chat-tab {% if mode == 'qa' or not mode %}active{% endif %}" data-mode="qa">
+        <i data-lucide="help-circle"></i> Academic Q&A
+      </button>
+      <button class="chat-tab {% if mode == 'tutor' %}active{% endif %}" data-mode="tutor">
+        <i data-lucide="bot"></i> Socratic AI Tutor
+      </button>
+      <button class="chat-tab" data-mode="explain">
+        <i data-lucide="sparkles"></i> Concept Explainer
+      </button>
+    </div>
+
+    <!-- Context Selectors -->
+    <div class="d-flex align-items-center gap-2">
+      <select id="chat-subject-select" class="form-select" style="padding: 0.4rem 0.8rem; font-size: 0.82rem; width: auto;">
+        <option value="Computer Science">Computer Science</option>
+        <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
+        <option value="Database Systems">Database Systems</option>
+        <option value="Physics & Mathematics">Physics & Mathematics</option>
+        <option value="Electronics & AI">Electronics & AI</option>
+      </select>
+
+      <select id="explain-lang-select" class="form-select" style="padding: 0.4rem 0.8rem; font-size: 0.82rem; width: auto;">
+        <option value="English">English</option>
+        <option value="Tanglish">Tanglish</option>
+        <option value="Tamil">Tamil</option>
+      </select>
+
+      <select id="explain-level-select" class="form-select" style="padding: 0.4rem 0.8rem; font-size: 0.82rem; width: auto;">
+        <option value="intermediate">Intermediate</option>
+        <option value="beginner">Beginner</option>
+        <option value="eli5">Explain Like I'm 5</option>
+        <option value="advanced">Advanced</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Messages History -->
+  <div class="chat-messages" id="chat-messages">
+    <!-- Welcome Bubble -->
+    <div class="message-bubble assistant">
+      <div class="message-header">
+        <span>EduGenie AI</span>
+        <button class="btn-icon" style="width: 26px; height: 26px;" onclick="voiceAssistant.speak('Hello! I am EduGenie, your personal academic learning assistant. How can I guide you today?')" title="Read Aloud">
+          <i data-lucide="volume-2" style="font-size: 0.9rem;"></i>
+        </button>
+      </div>
+      <div class="message-content">
+        <p>👋 Hello Scholar! I'm <strong>EduGenie</strong>, your AI study companion powered by Google Gemini.</p>
+        <p class="mt-2">You can ask me to:</p>
+        <ul class="styled-list mt-1">
+          <li>Explain concepts step-by-step or in <strong>Tanglish / ELI5</strong></li>
+          <li>Act as your <strong>Socratic Tutor</strong> without spoiling answers immediately</li>
+          <li>Analyze uploaded <strong>diagrams or handwritten notes</strong> via the camera icon</li>
+          <li>Speak using your microphone via the <strong>Voice button</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input Bar -->
+  <form id="chat-form" class="chat-input-bar">
+    <!-- Hidden File Input for Multimodal Image Upload -->
+    <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
+
+    <button type="button" class="btn-icon" id="image-upload-btn" title="Upload Textbook Diagram or Question Image">
+      <i data-lucide="camera"></i>
+    </button>
+
+    <button type="button" class="btn-icon" id="voice-input-btn" title="Speak Question (Web Speech API)">
+      <i data-lucide="mic"></i>
+    </button>
+
+    <input type="text" id="chat-input" class="form-input" placeholder="Ask your question or enter a topic..." autocomplete="off">
+
+    <button type="submit" class="btn btn-primary" id="chat-send-btn">
+      <i data-lucide="send"></i>
+    </button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/chat.js"></script>
+{% endblock %}

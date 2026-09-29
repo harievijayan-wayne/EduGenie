@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login – EduGenie AI Learning Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/responsive.css">
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.12), transparent 60%), var(--bg-app);
+    }
+    .auth-box {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-md);
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="text-center mb-4">
+        <div class="brand-icon mx-auto mb-3" style="width: 48px; height: 48px; margin: 0 auto 1rem;">
+          <i data-lucide="sparkles"></i>
+        </div>
+        <h2>Welcome to EduGenie</h2>
+        <p class="text-muted" style="font-size: 0.88rem; margin-top: 0.35rem;">Sign in to resume your personalized AI study workspace</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-input" placeholder="student@university.edu" required value="demo@edugenie.ai">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••" required value="edugenie123">
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" style="width: 100%; padding: 0.85rem; margin-top: 0.5rem;">
+          <i data-lucide="log-in"></i> Sign In
+        </button>
+      </form>
+
+      <div class="mt-4 p-3 bg-surface-elevated text-center" style="border-radius: var(--radius-md); font-size: 0.82rem;">
+        <span class="text-muted">Demo Account:</span> <strong>demo@edugenie.ai</strong> / <strong>edugenie123</strong>
+      </div>
+
+      <div class="text-center mt-4">
+        <p class="text-muted" style="font-size: 0.88rem;">
+          New to EduGenie? <a href="/register" class="text-primary font-weight-bold">Create Free Account</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/auth.js"></script>
+</body>
+</html>

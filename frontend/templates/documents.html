@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Document RAG – EduGenie{% endblock %}
+{% block page_title %}Document RAG & PDF Analyzer{% endblock %}
+
+{% block content %}
+<div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 1.75rem;">
+  
+  <!-- Left Column: Upload & Document Library -->
+  <div>
+    <!-- Dropzone Card -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3 class="card-title"><i data-lucide="upload-cloud"></i> Upload Study Material</h3>
+        <span class="status-badge">PDF / TXT / DOCX</span>
+      </div>
+      <p class="text-muted mb-3" style="font-size: 0.85rem;">
+        Upload textbooks, research papers, or syllabus documents. EduGenie indexes the text into semantic chunks for grounded Q&A.
+      </p>
+
+      <div class="file-dropzone" id="doc-dropzone">
+        <i data-lucide="file-up"></i>
+        <h4>Click or Drag & Drop File Here</h4>
+        <p class="text-muted" style="font-size: 0.82rem; margin-top: 0.25rem;">Supports PDF, DOCX, TXT up to 15MB</p>
+        <input type="file" id="doc-file-input" accept=".pdf,.txt,.docx" style="display: none;">
+      </div>
+      <div id="upload-status-text" class="text-primary mt-2 text-center" style="display: none; font-size: 0.85rem;"></div>
+    </div>
+
+    <!-- Indexed Document Library -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i data-lucide="folder"></i> Indexed Materials</h3>
+        <button class="btn btn-secondary btn-sm" onclick="loadDocuments()"><i data-lucide="refresh-cw"></i> Refresh</button>
+      </div>
+      <div id="uploaded-docs-list">
+        <!-- Rendered by documents.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Grounded Semantic RAG Q&A -->
+  <div>
+    <div class="card" id="rag-qa-section">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title"><i data-lucide="search"></i> Grounded Document Q&A (RAG)</h3>
+          <small class="text-muted" id="selected-doc-badge">Please select a document from the left to start querying</small>
+        </div>
+        <span class="status-badge">Cosine Vector Search</span>
+      </div>
+
+      <form id="rag-ask-form" class="mb-4">
+        <div class="form-group">
+          <label class="form-label" for="rag-question-input">Ask any question specific to your document</label>
+          <div class="d-flex gap-2">
+            <input type="text" id="rag-question-input" class="form-input" placeholder="e.g. 'What is the main algorithm described on page 3?', 'What are the theorem proofs?'" required>
+            <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+              <i data-lucide="send"></i> Query
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Pre-set Quick RAG Prompts -->
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('rag-question-input').value='What are the core conclusions of this document?'">Core Conclusions</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('rag-question-input').value='Explain the fundamental problem and methodology.'">Methodology</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('rag-question-input').value='What are the edge cases or limitations mentioned?'">Limitations</button>
+      </div>
+
+      <!-- RAG Results Container -->
+      <div id="rag-results-display">
+        <div class="p-4 text-center text-muted border-dashed" style="border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+          <i data-lucide="sparkles" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--primary);"></i>
+          <p>Answers will be synthesized strictly from retrieved document chunks.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/documents.js"></script>
+{% endblock %}

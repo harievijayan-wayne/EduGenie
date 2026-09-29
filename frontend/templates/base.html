@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}EduGenie – Google Gemini Powered AI Learning Assistant{% endblock %}</title>
+  <meta name="description" content="EduGenie - Learn Smarter. Understand Faster. Grow Better. AI Study Companion, Tutor, Document RAG, and Exam Assistant.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- marked.js — renders markdown in AI responses -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Application Stylesheets -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/responsive.css">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">
+          <i data-lucide="sparkles"></i>
+        </div>
+        <div class="brand-text">
+          <h2>EduGenie</h2>
+          <span>AI Study Companion</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Core Learning</div>
+        <a href="/dashboard" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="/tutor" class="nav-link {% if active_page == 'tutor' %}active{% endif %}">
+          <i data-lucide="bot"></i> AI Tutor Mode
+        </a>
+        <a href="/chat" class="nav-link {% if active_page == 'chat' %}active{% endif %}">
+          <i data-lucide="message-square"></i> Ask & Explain
+        </a>
+        <a href="/quiz" class="nav-link {% if active_page == 'quiz' %}active{% endif %}">
+          <i data-lucide="help-circle"></i> Diagnostic Quiz
+        </a>
+
+        <div class="nav-section-title">Study Tools & RAG</div>
+        <a href="/documents" class="nav-link {% if active_page == 'documents' %}active{% endif %}">
+          <i data-lucide="file-text"></i> Document RAG
+        </a>
+        <a href="/flashcards" class="nav-link {% if active_page == 'flashcards' %}active{% endif %}">
+          <i data-lucide="layers"></i> Flashcards
+        </a>
+        <a href="/notes" class="nav-link {% if active_page == 'notes' %}active{% endif %}">
+          <i data-lucide="book-open"></i> Smart Notes
+        </a>
+        <a href="/exam" class="nav-link {% if active_page == 'exam' %}active{% endif %}">
+          <i data-lucide="award"></i> Exam Answer Prep
+        </a>
+
+        <div class="nav-section-title">Planning & Growth</div>
+        <a href="/learning-path" class="nav-link {% if active_page == 'learning_path' %}active{% endif %}">
+          <i data-lucide="map"></i> Learning Path
+        </a>
+        <a href="/progress" class="nav-link {% if active_page == 'progress' %}active{% endif %}">
+          <i data-lucide="trending-up"></i> Progress & Badges
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-snippet">
+          <div class="user-avatar" id="sidebar-user-avatar">AS</div>
+          <div class="user-info">
+            <div class="user-name" id="sidebar-user-name">Alex Scholar</div>
+            <div class="user-level" id="sidebar-user-level">Active Scholar</div>
+          </div>
+        </div>
+        <button class="btn-icon" id="logout-btn" title="Logout">
+          <i data-lucide="log-out"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Navigation Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-nav-toggle" id="mobile-nav-toggle">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="page-title">
+            <h1>{% block page_title %}Workspace{% endblock %}</h1>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- AI Backend Badge -->
+          <div class="status-badge {% if settings.GROQ_API_KEY %}active{% else %}demo{% endif %}">
+            <i data-lucide="cpu"></i>
+            <span>{% if settings.GROQ_API_KEY %}Groq AI Active{% elif settings.OLLAMA_MODEL %}Ollama Active{% else %}Demo Mode{% endif %}</span>
+          </div>
+
+          <div class="stat-chip">
+            <i data-lucide="zap"></i>
+            <span id="topbar-xp">350 XP</span>
+          </div>
+
+          <div class="stat-chip">
+            <i data-lucide="flame"></i>
+            <span id="topbar-streak">5 🔥</span>
+          </div>
+
+          <!-- Theme Toggle -->
+          <button class="btn-icon" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+            <i data-lucide="sun" id="theme-toggle-icon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Body Content -->
+      <div class="page-body">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/auth.js"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
