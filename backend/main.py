@@ -63,17 +63,20 @@ def seed_initial_data():
     finally:
         db.close()
 
-# Ensure tables exist immediately upon import
-Base.metadata.create_all(bind=engine)
+def init_db():
+    """Initializes the database schema and seeds initial data safely."""
+    try:
+        Base.metadata.create_all(bind=engine)
+        seed_initial_data()
+        logger.info("EduGenie database successfully initialized.")
+    except Exception as e:
+        logger.warning(f"Database initialization deferred or skipped: {e}")
 
+# Safe startup in lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables exist and seed demo data
-    Base.metadata.create_all(bind=engine)
-    seed_initial_data()
-    logger.info("EduGenie API and Database successfully initialized.")
+    init_db()
     yield
-    # Shutdown
     logger.info("EduGenie shutting down gracefully.")
 
 app = FastAPI(
@@ -92,21 +95,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static and Templates
-try:
-    os.makedirs("frontend/static/css", exist_ok=True)
-    os.makedirs("frontend/static/js", exist_ok=True)
-    os.makedirs("frontend/static/images", exist_ok=True)
-    os.makedirs("frontend/templates", exist_ok=True)
-except OSError:
-    pass
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR, "frontend", "static")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "frontend", "templates")
 
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-templates = Jinja2Templates(directory=TEMPLATES_DIR)
+# Safely mount static directory if it exists
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+templates = Jinja2Templates(directory=TEMPLATES_DIR if os.path.exists(TEMPLATES_DIR) else ".")
 
 # Register all API routers
 for router in all_routers:

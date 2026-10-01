@@ -2,12 +2,23 @@ import os
 from typing import Optional
 from pydantic_settings import BaseSettings
 
-# Detect serverless / Vercel environment
-IS_VERCEL = bool(
-    os.environ.get("VERCEL")
-    or os.environ.get("VERCEL_ENV")
-    or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
-)
+def _detect_serverless() -> bool:
+    """Detect if running in a serverless, container, or read-only cloud environment."""
+    if any(os.environ.get(k) for k in ("VERCEL", "VERCEL_ENV", "NOW_REGION", "AWS_LAMBDA_FUNCTION_NAME", "LAMBDA_TASK_ROOT")):
+        return True
+    if os.path.exists("/var/task"):
+        return True
+    # Test if current working directory is writable
+    try:
+        test_file = os.path.join(os.getcwd(), ".write_test_tmp")
+        with open(test_file, "w") as f:
+            f.write("1")
+        os.remove(test_file)
+        return False
+    except (OSError, IOError, PermissionError):
+        return True
+
+IS_VERCEL = _detect_serverless()
 
 _DEFAULT_DB_URL = "sqlite:////tmp/edugenie.db" if IS_VERCEL else "sqlite:///./edugenie.db"
 _DEFAULT_UPLOAD_DIR = "/tmp/uploads" if IS_VERCEL else "uploads"

@@ -3,9 +3,16 @@ import json
 from typing import Dict, Any, List, Optional
 try:
     import pymupdf as fitz
-except ImportError:
-    import fitz  # PyMuPDF fallback
-import docx
+except Exception:
+    try:
+        import fitz
+    except Exception:
+        fitz = None
+
+try:
+    import docx
+except Exception:
+    docx = None
 from sqlalchemy.orm import Session
 from backend.models import Document, User
 from backend.utils.text_utils import clean_text, chunk_text

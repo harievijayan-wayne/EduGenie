@@ -13,7 +13,7 @@ def health_check() -> Dict[str, Any]:
         "status": "healthy",
         "service": "EduGenie",
         "version": settings.VERSION,
-        "ai_backend": "ollama",
+        "ai_backend": settings.AI_BACKEND,
         "ai_configured": gemini_service.is_configured(),
         "demo_mode": not gemini_service.is_configured()
     }
