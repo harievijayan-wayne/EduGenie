@@ -3,11 +3,16 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from backend.config import settings
 
+db_url = settings.DATABASE_URL
+# Normalise cloud Postgres URLs (e.g. Supabase, Neon) which often use postgres://
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
 # SQLite connection configuration for FastAPI
-connect_args = {"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
+connect_args = {"check_same_thread": False} if "sqlite" in db_url else {}
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    db_url,
     connect_args=connect_args,
     echo=False
 )

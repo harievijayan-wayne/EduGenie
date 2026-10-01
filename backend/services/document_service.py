@@ -1,7 +1,10 @@
 import os
 import json
 from typing import Dict, Any, List, Optional
-import fitz  # PyMuPDF
+try:
+    import pymupdf as fitz
+except ImportError:
+    import fitz  # PyMuPDF fallback
 import docx
 from sqlalchemy.orm import Session
 from backend.models import Document, User

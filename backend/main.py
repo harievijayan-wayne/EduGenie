@@ -93,13 +93,20 @@ app.add_middleware(
 )
 
 # Static and Templates
-os.makedirs("frontend/static/css", exist_ok=True)
-os.makedirs("frontend/static/js", exist_ok=True)
-os.makedirs("frontend/static/images", exist_ok=True)
-os.makedirs("frontend/templates", exist_ok=True)
+try:
+    os.makedirs("frontend/static/css", exist_ok=True)
+    os.makedirs("frontend/static/js", exist_ok=True)
+    os.makedirs("frontend/static/images", exist_ok=True)
+    os.makedirs("frontend/templates", exist_ok=True)
+except OSError:
+    pass
 
-app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
-templates = Jinja2Templates(directory="frontend/templates")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "frontend", "static")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "frontend", "templates")
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # Register all API routers
 for router in all_routers:

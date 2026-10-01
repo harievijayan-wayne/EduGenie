@@ -2,6 +2,16 @@ import os
 from typing import Optional
 from pydantic_settings import BaseSettings
 
+# Detect serverless / Vercel environment
+IS_VERCEL = bool(
+    os.environ.get("VERCEL")
+    or os.environ.get("VERCEL_ENV")
+    or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+)
+
+_DEFAULT_DB_URL = "sqlite:////tmp/edugenie.db" if IS_VERCEL else "sqlite:///./edugenie.db"
+_DEFAULT_UPLOAD_DIR = "/tmp/uploads" if IS_VERCEL else "uploads"
+
 class Settings(BaseSettings):
     APP_NAME: str = "EduGenie"
     TAGLINE: str = "Learn Smarter. Understand Faster. Grow Better."
@@ -13,11 +23,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # Database
-    DATABASE_URL: str = "sqlite:///./edugenie.db"
+    DATABASE_URL: str = _DEFAULT_DB_URL
     
     # AI Backend selector: "groq" | "ollama" | "demo"
-    # groq   = Groq cloud inference (fastest, ~200 tok/s) ← recommended
-    # ollama = Local Ollama server (offline, no API key needed)
+    # groq   = Groq cloud inference (fastest, ~200 tok/s) ← recommended for Vercel
+    # ollama = Local Ollama server (offline, local machine only)
     # demo   = Static fallback responses (no AI)
     AI_BACKEND: str = "groq"
 
@@ -35,7 +45,7 @@ class Settings(BaseSettings):
     DEMO_MODE: bool = False
     
     # Uploads & Storage
-    UPLOAD_DIR: str = "uploads"
+    UPLOAD_DIR: str = _DEFAULT_UPLOAD_DIR
     MAX_UPLOAD_SIZE_MB: int = 15
     ALLOWED_EXTENSIONS: list[str] = [".pdf", ".txt", ".docx", ".png", ".jpg", ".jpeg"]
     
@@ -49,6 +59,30 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Ensure directories exist
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-os.makedirs("backend/data", exist_ok=True)
+# On Vercel / serverless: ensure SQLite databases point to writable /tmp
+if IS_VERCEL and "sqlite" in settings.DATABASE_URL:
+    if not settings.DATABASE_URL.startswith("sqlite:////tmp/"):
+        db_filename = os.path.basename(settings.DATABASE_URL.replace("sqlite:///", "")) or "edugenie.db"
+        settings.DATABASE_URL = f"sqlite:////tmp/{db_filename}"
+
+# If running on Vercel with SQLite in /tmp, copy initial seed database if available
+if IS_VERCEL and "sqlite" in settings.DATABASE_URL and "/tmp/" in settings.DATABASE_URL:
+    try:
+        import shutil
+        seed_db = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "edugenie.db")
+        target_db = settings.DATABASE_URL.replace("sqlite:///", "")
+        if os.path.exists(seed_db) and not os.path.exists(target_db):
+            shutil.copy2(seed_db, target_db)
+    except Exception:
+        pass
+
+# Ensure directories exist safely without throwing on read-only filesystems
+try:
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    if not IS_VERCEL:
+        os.makedirs("backend/data", exist_ok=True)
+    else:
+        os.makedirs("/tmp/data", exist_ok=True)
+except OSError:
+    pass
+
