@@ -41,6 +41,12 @@ class OllamaService:
 
     def _init_client(self):
         """Try to connect to Ollama and verify the configured model exists."""
+        from backend.config import IS_VERCEL, settings
+        if IS_VERCEL or getattr(settings, "AI_BACKEND", "groq") != "ollama":
+            self._client = None
+            self._available = False
+            return
+
         try:
             import ollama  # noqa: PLC0415
 

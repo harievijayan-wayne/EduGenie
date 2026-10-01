@@ -26,10 +26,20 @@ class DocumentService:
         text = ""
         ext = ext.lower()
         if ext == ".pdf":
-            doc = fitz.open(file_path)
-            for page in doc:
-                text += page.get_text() + "\n"
-            doc.close()
+            try:
+                import pypdf
+                reader = pypdf.PdfReader(file_path)
+                for page in reader.pages:
+                    text += (page.extract_text() or "") + "\n"
+            except Exception:
+                if fitz is not None:
+                    try:
+                        doc = fitz.open(file_path)
+                        for page in doc:
+                            text += page.get_text() + "\n"
+                        doc.close()
+                    except Exception:
+                        pass
         elif ext in [".docx", ".doc"]:
             doc = docx.Document(file_path)
             for para in doc.paragraphs:
